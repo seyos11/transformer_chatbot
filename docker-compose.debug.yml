@@ -1,0 +1,10 @@
+version: '2.1'
+
+services:
+  transformer_chatbot:
+    image: transformer_chatbot
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000

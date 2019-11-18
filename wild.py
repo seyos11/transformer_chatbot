@@ -22,7 +22,8 @@ def main():
                         annealing_topk=None,
                         annealing=0.6,
                         length_penalty=0.7)
-
+   
+    #Search for args to put in
     ConvAIWorld.add_cmdline_args(parser)
     TransformerAgent.add_cmdline_args(parser)
     opt = parser.parse_args()

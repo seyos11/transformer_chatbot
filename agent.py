@@ -105,6 +105,7 @@ class TransformerAgent(Agent):
         assert self.opt['beam_size'] % self.opt['diversity_groups'] == 0
 
         if shared is None:
+            #Parameters of Transformer are taken from config.py.
             self.model = TransformerModel(n_layers=model_config.n_layers,
                                           n_embeddings=len(self.vocab),
                                           n_pos_embeddings=model_config.n_pos_embeddings,
@@ -137,7 +138,7 @@ class TransformerAgent(Agent):
 
             if self.use_cuda:
                 self.model = self.model.cuda()
-
+            #Evaluation of the model. It is supposed to test the parameters of the model. Prediction step.
             self.model.eval()
 
         else:
@@ -174,7 +175,8 @@ class TransformerAgent(Agent):
                 dialog.append(subtext)
 
         return persona_info, dialog
-
+    #ParlAi Agent typical method. Personalized?
+    #Call parse method and add bos and eos ids depending on the talker.
     def observe(self, observation):
         if self.episode_done:
             self.reset()
@@ -206,9 +208,11 @@ class TransformerAgent(Agent):
         
         return observation
     
+    #ParlAi Agent typical method. Personalized?    
+    #Personalized to batch_act method
     def act(self):
         return self.batch_act([self.observation])[0]
-
+    
     def _postprocess_text(self, reply, agent):
         str_reply = self.vocab.ids2string(reply)
 

@@ -6,17 +6,22 @@ from model.trainer import Trainer
 from model.text import BPEVocab
 from model.dataset import FacebookDataset
 from config import get_model_config, get_trainer_config
-
+import multiprocessing
+multiprocessing.set_start_method('spawn', True)
+from sklearn import preprocessing
 
 def main():
+    #Model configuration: predefined parameters
     model_config = get_model_config()
+    #Trainger configuration: Predefined parameters. 
     trainer_config = get_trainer_config()
 
     set_seed(trainer_config.seed)
     device = torch.device(trainer_config.device)
 
+    #Vocab configuration to have the sentences with specials tokens to be fed into transformer
     vocab = BPEVocab.from_files(model_config.bpe_vocab_path, model_config.bpe_codes_path)
-
+    #Transformer Model parameters settings
     transformer = TransformerModel(n_layers=model_config.n_layers,
                                    n_embeddings=len(vocab),
                                    n_pos_embeddings=model_config.n_pos_embeddings,
@@ -37,7 +42,7 @@ def main():
                                    annealing=model_config.annealing,
                                    diversity_coef=model_config.diversity_coef,
                                    diversity_groups=model_config.diversity_groups)
-
+    #Load OpenAI weights from folder downloaded
     if not trainer_config.load_last:
         load_openai_weights(transformer.transformer_module, 
                             trainer_config.openai_parameters_dir,
@@ -46,7 +51,7 @@ def main():
 
     train_dataset = FacebookDataset(trainer_config.train_datasets, vocab, transformer.n_pos_embeddings - 1)
     test_dataset = FacebookDataset(trainer_config.test_datasets, vocab, transformer.n_pos_embeddings - 1)
-
+    #Trainer model parameters settings
     model_trainer = Trainer(transformer,
                             train_dataset, 
                             test_dataset, 
@@ -60,7 +65,7 @@ def main():
                             clip_grad=trainer_config.clip_grad, 
                             device=device,
                             ignore_idxs=vocab.special_tokens_ids)
-
+    #Load last weights from last checkpoint
     if trainer_config.load_last:
         state_dict = torch.load(trainer_config.last_checkpoint_path, map_location=device)
         model_trainer.load_state_dict(state_dict)
@@ -68,9 +73,12 @@ def main():
     
 
     # helpers -----------------------------------------------------
+    #
+    #It saves the model, including the weights
     def save_func(epoch):
         torch.save(model_trainer.state_dict(), trainer_config.last_checkpoint_path)  
 
+    #Predicttion of some samples chosen randomly
     def sample_text_func(epoch):
         n_samples = 5
         samples_idxs = random.sample(range(len(test_dataset)), n_samples)
@@ -91,7 +99,8 @@ def main():
             print('Dialog:{}'.format(dialog_str))
             print('Target:\n\t{}'.format(target_str))
             print('Prediction:\n\t{}'.format(prediction_str))
-
+    
+    #Metrics and testing (model)
     def test_func(epoch):
         if (epoch+1) % trainer_config.test_period == 0:
             metric_funcs = {'f1_score': f1_score}

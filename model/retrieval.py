@@ -21,7 +21,7 @@ import re
 from tqdm import tqdm
 import difflib
 
-from .sentiment import get_mood
+from sentiment import get_mood
 
 
 DIALOG_SIZE = 3
@@ -99,8 +99,7 @@ class RetrievalBot:
             sentiment = get_mood(dialog[-1])
             request += weights[-1] * [{'match': {'sentiment': sentiment}}]
 
-        res = self.es.search(index=self.INDEX_NAME,
-                             body={"size": num_matches, 'query': {'bool': {'must': request}}})
+        res = self.es.search(index=self.INDEX_NAME,body={"size": num_matches, 'query': {'bool': {'must': request}}})
 
         return res
 
@@ -130,7 +129,7 @@ class RetrievalBot:
     def generate_question(self, dialog, info=None, use_sentiment=False, num_matches=20, only_with_qwords=True,
                           return_list=False):
         # d1, d2, d3, info, sentiment
-        weights = [0, 0, 1, 1, 1]
+        weights = [0, 1, 1, 1, 1]
         res = self._match_data(weights, dialog, info, use_sentiment, num_matches)
         res = res['hits']
 

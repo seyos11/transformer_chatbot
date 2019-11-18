@@ -23,12 +23,15 @@ from tqdm import tqdm
 from .utils import pad_sequence
 from .optim import Adam, NoamOpt
 from .loss import LabelSmoothingLoss
+import multiprocessing
+multiprocessing.set_start_method('spawn', True)
+from sklearn import preprocessing
 
 
 class Trainer:
     def __init__(self, model, train_dataset, test_dataset=None, batch_size=8,
                  batch_split=1, lm_weight=0.5, risk_weight=0, lr=6.25e-5, lr_warmup=2000, 
-                 n_jobs=0, clip_grad=None, label_smoothing=0, device=torch.device('cuda'),
+                 n_jobs=0, clip_grad=None, label_smoothing=0, device=torch.device('cpu'),
                  ignore_idxs=[]):
         self.model = model.to(device)
         self.lm_criterion = nn.CrossEntropyLoss(ignore_index=self.model.padding_idx).to(device)

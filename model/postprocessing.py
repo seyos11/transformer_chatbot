@@ -38,7 +38,7 @@ STANDARD_ANSWERS = ['do you wanna talk about something else? ',
                     'how do you usually spend your weekend?',
                     'i think you are interesting person. tell me something about yourself.']
 
-
+#Capital I fix. 
 def syntax_fix(text):
     def _i_replace(text):
         text = text.split()
